@@ -2,12 +2,17 @@ import React, {
     createContext,
     useContext,
     useState,
+    useEffect,
 } from 'react';
 import {
     Device,
     SensorData,
-    sampleDevices,
 } from '../models/IoTModels';
+import {
+    getSensorData,
+    getDevices,
+    updateDeviceStatus,
+} from '../services/IoTService';
 
 type IoTContextType = {
     devices: Device[];
@@ -33,18 +38,12 @@ export function IoTProvider({
     children: React.ReactNode;
 }) {
 
-    const [deviceStatus, setDeviceStatus] = useState(
-        sampleDevices.reduce((acc, device) => {
-            acc[device.id] = device.status;
-
-            return acc;
-        }, {} as Record<number, boolean>)
-    );
+    const [devices, setDevices] = useState<Device[]>([]);
 
     const [gatewayConnected, setGatewayConnected] =
         useState(true);
 
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [error, setError] = useState<string | null>(
         null
@@ -66,7 +65,7 @@ export function IoTProvider({
         setIsRefreshingSensors,
     ] = useState(false);
 
-    const refreshSensors = () => {
+    const refreshSensors = async () => {
 
         if (!gatewayConnected) {
             setError('Gateway is not connected');
@@ -76,22 +75,44 @@ export function IoTProvider({
         setError(null);
         setIsRefreshingSensors(true);
 
-        setTimeout(() => {
-            setSensors({
-                temperature: Math.round(
-                    20 + Math.random() * 15
-                ),
-                humidity: Math.round(
-                    30 + Math.random() * 60
-                ),
-                lightLevel: Math.round(
-                    100 + Math.random() * 900
-                ),
-            });
+        try {
+            const data = await getSensorData();
+            setSensors(data);
+        } catch (err) {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : 'Failed to refresh sensors'
+            );
+        } finally {
             setIsRefreshingSensors(false);
-        }, 1000);
+        }
 
     };
+
+    const loadDevices = async () => {
+
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const data = await getDevices();
+            setDevices(data);
+        } catch (err) {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : 'Failed to load devices'
+            );
+        } finally {
+            setIsLoading(false);
+        }
+
+    };
+
+    useEffect(() => {
+        loadDevices();
+    }, []);
 
     const connectGateway = () => {
 
@@ -109,7 +130,7 @@ export function IoTProvider({
         setGatewayConnected(false);
     };
 
-    const toggleDevice = (
+    const toggleDevice = async (
         id: number,
         value: boolean
     ) => {
@@ -122,26 +143,44 @@ export function IoTProvider({
         setError(null);
         setUpdatingDeviceId(id);
 
-        setDeviceStatus({
-            ...deviceStatus,
-            [id]: value,
-        });
+        const previousDevices = devices;
 
-        setTimeout(() => {
+        setDevices(
+            devices.map((device) =>
+                device.id === id
+                    ? { ...device, status: value }
+                    : device
+            )
+        );
+
+        try {
+            const updated = await updateDeviceStatus(
+                id,
+                value
+            );
+
+            setDevices((current) =>
+                current.map((device) =>
+                    device.id === id ? updated : device
+                )
+            );
+        } catch (err) {
+            setDevices(previousDevices);
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : 'Failed to update device'
+            );
+        } finally {
             setUpdatingDeviceId(null);
-        }, 600);
+        }
 
     };
-
-    const updatedDevices = sampleDevices.map((device) => ({
-        ...device,
-        status: deviceStatus[device.id],
-    }));
 
     return (
         <IoTContext.Provider
             value={{
-                devices: updatedDevices,
+                devices,
                 sensors,
                 refreshSensors,
                 isRefreshingSensors,

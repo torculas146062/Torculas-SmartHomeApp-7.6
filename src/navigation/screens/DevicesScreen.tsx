@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +20,8 @@ export default function DevicesScreen() {
     toggleDevice,
     updatingDeviceId,
     gatewayConnected,
+    isLoading,
+    error,
   } = useIoT();
 
   return (
@@ -31,6 +34,19 @@ export default function DevicesScreen() {
       <Text style={styles.subtitle}>
         Control your connected devices
       </Text>
+
+      {isLoading && (
+        <ActivityIndicator
+          size="large"
+          style={styles.loader}
+        />
+      )}
+
+      {!isLoading && devices.length === 0 && (
+        <Text style={styles.errorText}>
+          {error ?? 'No devices found'}
+        </Text>
+      )}
 
       {devices.map((device) => (
 
@@ -104,6 +120,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 5,
     marginBottom: 25,
+  },
+
+  loader: {
+    marginTop: 40,
+  },
+
+  errorText: {
+    fontSize: 14,
+    marginTop: 20,
+    textAlign: 'center',
+    color: '#d32f2f',
   },
 
   deviceCard: {

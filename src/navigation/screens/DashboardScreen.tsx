@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch } from 'react-native';
+import { View, Text, StyleSheet, Switch, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useIoT } from '../../context/IoTContext';
 
@@ -17,7 +17,9 @@ export default function DashboardScreen() {
         sensors, 
         toggleDevice,
         updatingDeviceId,
-        gatewayConnected } = useIoT();
+        gatewayConnected,
+        isLoading,
+        error } = useIoT();
 
     return (
         <View style={styles.container}>
@@ -71,6 +73,16 @@ export default function DashboardScreen() {
             <Text style={styles.sectionTitle}>
                 Device Status
             </Text>
+
+            {isLoading && (
+                <ActivityIndicator size="large" />
+            )}
+
+            {!isLoading && devices.length === 0 && (
+                <Text style={styles.errorText}>
+                    {error ?? 'No devices found'}
+                </Text>
+            )}
 
             {/* <View style={styles.deviceCard}>
 
@@ -241,6 +253,13 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 3,
         fontWeight: 'bold',
+    },
+
+    errorText: {
+        fontSize: 14,
+        marginTop: 10,
+        textAlign: 'center',
+        color: '#d32f2f',
     },
 
 });
