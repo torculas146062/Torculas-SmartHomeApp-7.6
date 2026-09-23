@@ -13,6 +13,7 @@ type IoTContextType = {
     devices: Device[];
     sensors: SensorData;
     toggleDevice: (id: number, value: boolean) => void;
+    updatingDeviceId: number | null;
     gatewayConnected: boolean;
     connectGateway: () => void;
     disconnectGateway: () => void;
@@ -47,6 +48,11 @@ export function IoTProvider({
         null
     );
 
+    const [
+        updatingDeviceId,
+        setUpdatingDeviceId,
+    ] = useState<number | null>(null);
+
     const connectGateway = () => {
 
         setIsLoading(true);
@@ -74,11 +80,16 @@ export function IoTProvider({
         }
 
         setError(null);
+        setUpdatingDeviceId(id);
 
         setDeviceStatus({
             ...deviceStatus,
             [id]: value,
         });
+
+        setTimeout(() => {
+            setUpdatingDeviceId(null);
+        }, 600);
 
     };
 
@@ -99,6 +110,7 @@ export function IoTProvider({
                 devices: updatedDevices,
                 sensors,
                 toggleDevice,
+                updatingDeviceId,
                 gatewayConnected,
                 connectGateway,
                 disconnectGateway,

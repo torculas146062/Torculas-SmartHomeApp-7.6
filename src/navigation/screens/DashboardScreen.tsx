@@ -15,7 +15,9 @@ export default function DashboardScreen() {
 
     const { devices, 
         sensors, 
-        toggleDevice } = useIoT();
+        toggleDevice,
+        updatingDeviceId,
+        gatewayConnected } = useIoT();
 
     return (
         <View style={styles.container}>
@@ -118,9 +120,15 @@ export default function DashboardScreen() {
                             </Text>
 
                             <Text style={styles.deviceType}>
-                                <Text style={styles.deviceState}>
-                                    {device.status ? 'ON' : 'OFF'}
-                                </Text>
+                                {device.type}
+                            </Text>
+
+                            <Text style={styles.deviceState}>
+                                {updatingDeviceId === device.id
+                                    ? 'Updating...'
+                                    : device.status
+                                        ? 'ON'
+                                        : 'OFF'}
                             </Text>
                         </View>
 
@@ -128,6 +136,7 @@ export default function DashboardScreen() {
 
                     <Switch
                         value={device.status}
+                        disabled={!gatewayConnected}
                         onValueChange={(value) => {
                             toggleDevice(device.id, value);
                         }}
@@ -194,6 +203,7 @@ const styles = StyleSheet.create({
         padding: 18,
         borderRadius: 12,
         backgroundColor: '#eeeeee',
+        marginBottom: 12,
     },
 
     deviceInfo: {
@@ -227,9 +237,10 @@ const styles = StyleSheet.create({
         gap: 6,
     },
 
-    deviceState:{
-
-    }
-
+    deviceState: {
+        fontSize: 12,
+        marginTop: 3,
+        fontWeight: 'bold',
+    },
 
 });
