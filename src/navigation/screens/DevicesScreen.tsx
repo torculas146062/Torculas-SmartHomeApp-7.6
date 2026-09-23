@@ -7,6 +7,7 @@ import {
   ScrollView,
   Switch,
   ActivityIndicator,
+  Pressable,
 } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +23,7 @@ export default function DevicesScreen() {
     gatewayConnected,
     isLoading,
     error,
+    retryDevices,
   } = useIoT();
 
   return (
@@ -35,18 +37,52 @@ export default function DevicesScreen() {
         Control your connected devices
       </Text>
 
+      {!gatewayConnected && (
+        <Text style={styles.gatewayBanner}>
+          IoT Gateway is disconnected.
+        </Text>
+      )}
+
       {isLoading && (
-        <ActivityIndicator
-          size="large"
-          style={styles.loader}
-        />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+
+          <Text style={styles.loadingText}>
+            Loading devices...
+          </Text>
+        </View>
       )}
 
       {!isLoading && devices.length === 0 && (
-        <Text style={styles.errorText}>
-          {error ?? 'No devices found'}
-        </Text>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {error ?? 'No devices found'}
+          </Text>
+
+          {error && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.retryButton,
+                pressed && styles.retryButtonPressed,
+              ]}
+              onPress={retryDevices}
+              android_ripple={{ color: '#ffffff55' }}
+            >
+              <Text style={styles.retryButtonText}>
+                Retry
+              </Text>
+            </Pressable>
+          )}
+        </View>
       )}
+
+      {!!error &&
+        devices.length > 0 &&
+        gatewayConnected && (
+          <Text style={styles.errorBanner}>
+            {error}
+          </Text>
+        )}
 
       {devices.map((device) => (
 
@@ -124,6 +160,62 @@ const styles = StyleSheet.create({
 
   loader: {
     marginTop: 40,
+  },
+
+  loadingContainer: {
+    alignItems: 'center',
+    marginTop: 40,
+    gap: 10,
+  },
+
+  loadingText: {
+    fontSize: 14,
+    color: '#555555',
+  },
+
+  gatewayBanner: {
+    fontSize: 14,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#fff3cd',
+    color: '#8a6d00',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+
+  errorContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+    gap: 12,
+  },
+
+  errorBanner: {
+    fontSize: 14,
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#fdecea',
+    color: '#d32f2f',
+    textAlign: 'center',
+  },
+
+  retryButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    backgroundColor: '#d32f2f',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+
+  retryButtonPressed: {
+    opacity: 0.8,
+  },
+
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 
   errorText: {

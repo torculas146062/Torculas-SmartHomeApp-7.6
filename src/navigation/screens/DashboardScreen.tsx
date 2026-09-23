@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Switch, ActivityIndicator, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useIoT } from '../../context/IoTContext';
 
@@ -19,7 +19,8 @@ export default function DashboardScreen() {
         updatingDeviceId,
         gatewayConnected,
         isLoading,
-        error } = useIoT();
+        error,
+        retryDevices } = useIoT();
 
     return (
         <View style={styles.container}>
@@ -31,6 +32,12 @@ export default function DashboardScreen() {
             <Text style={styles.title}>
                 IoT Dashboard
             </Text>
+
+            {!gatewayConnected && (
+                <Text style={styles.gatewayBanner}>
+                    IoT Gateway is disconnected.
+                </Text>
+            )}
 
             <View style={styles.sensorRow}>
 
@@ -75,14 +82,52 @@ export default function DashboardScreen() {
             </Text>
 
             {isLoading && (
-                <ActivityIndicator size="large" />
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" />
+
+                    <Text style={styles.loadingText}>
+                        Loading devices...
+                    </Text>
+                </View>
             )}
 
             {!isLoading && devices.length === 0 && (
-                <Text style={styles.errorText}>
-                    {error ?? 'No devices found'}
-                </Text>
+                <View style={styles.errorContainer}>
+                    <Text style={styles.errorText}>
+                        {error ?? 'No devices found'}
+                    </Text>
+
+                    {error && (
+                        <Pressable
+                            style={({ pressed }) => [
+                                styles.retryButton,
+                                pressed &&
+                                    styles.retryButtonPressed,
+                            ]}
+                            onPress={retryDevices}
+                            android_ripple={{
+                                color: '#ffffff55',
+                            }}
+                        >
+                            <Text
+                                style={
+                                    styles.retryButtonText
+                                }
+                            >
+                                Retry
+                            </Text>
+                        </Pressable>
+                    )}
+                </View>
             )}
+
+            {!!error &&
+                devices.length > 0 &&
+                gatewayConnected && (
+                    <Text style={styles.errorBanner}>
+                        {error}
+                    </Text>
+                )}
 
             {/* <View style={styles.deviceCard}>
 
@@ -260,6 +305,62 @@ const styles = StyleSheet.create({
         marginTop: 10,
         textAlign: 'center',
         color: '#d32f2f',
+    },
+
+    gatewayBanner: {
+        fontSize: 14,
+        padding: 12,
+        borderRadius: 10,
+        backgroundColor: '#fff3cd',
+        color: '#8a6d00',
+        marginTop: 15,
+        textAlign: 'center',
+    },
+
+    loadingContainer: {
+        alignItems: 'center',
+        marginTop: 20,
+        gap: 10,
+    },
+
+    loadingText: {
+        fontSize: 14,
+        color: '#555555',
+    },
+
+    errorContainer: {
+        alignItems: 'center',
+        marginTop: 10,
+        gap: 12,
+    },
+
+    errorBanner: {
+        fontSize: 14,
+        marginBottom: 12,
+        padding: 12,
+        borderRadius: 10,
+        backgroundColor: '#fdecea',
+        color: '#d32f2f',
+        textAlign: 'center',
+    },
+
+    retryButton: {
+        paddingVertical: 12,
+        paddingHorizontal: 30,
+        borderRadius: 10,
+        backgroundColor: '#d32f2f',
+        alignItems: 'center',
+        overflow: 'hidden',
+    },
+
+    retryButtonPressed: {
+        opacity: 0.8,
+    },
+
+    retryButtonText: {
+        color: '#ffffff',
+        fontSize: 15,
+        fontWeight: 'bold',
     },
 
 });

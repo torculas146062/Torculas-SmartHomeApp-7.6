@@ -19,6 +19,7 @@ type IoTContextType = {
     sensors: SensorData;
     refreshSensors: () => void;
     isRefreshingSensors: boolean;
+    sensorError: string | null;
     toggleDevice: (id: number, value: boolean) => void;
     updatingDeviceId: number | null;
     gatewayConnected: boolean;
@@ -26,6 +27,7 @@ type IoTContextType = {
     disconnectGateway: () => void;
     isLoading: boolean;
     error: string | null;
+    retryDevices: () => void;
 };
 
 const IoTContext = createContext<IoTContextType | undefined>(
@@ -49,6 +51,10 @@ export function IoTProvider({
         null
     );
 
+    const [sensorError, setSensorError] = useState<
+        string | null
+    >(null);
+
     const [
         updatingDeviceId,
         setUpdatingDeviceId,
@@ -68,21 +74,21 @@ export function IoTProvider({
     const refreshSensors = async () => {
 
         if (!gatewayConnected) {
-            setError('Gateway is not connected');
+            setSensorError(
+                'IoT Gateway is disconnected.'
+            );
             return;
         }
 
-        setError(null);
+        setSensorError(null);
         setIsRefreshingSensors(true);
 
         try {
             const data = await getSensorData();
             setSensors(data);
-        } catch (err) {
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : 'Failed to refresh sensors'
+        } catch {
+            setSensorError(
+                'Unable to retrieve sensor data.'
             );
         } finally {
             setIsRefreshingSensors(false);
@@ -98,12 +104,8 @@ export function IoTProvider({
         try {
             const data = await getDevices();
             setDevices(data);
-        } catch (err) {
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : 'Failed to load devices'
-            );
+        } catch {
+            setError('Unable to retrieve devices.');
         } finally {
             setIsLoading(false);
         }
@@ -136,7 +138,9 @@ export function IoTProvider({
     ) => {
 
         if (!gatewayConnected) {
-            setError('Gateway is not connected');
+            setError(
+                'IoT Gateway is disconnected.'
+            );
             return;
         }
 
@@ -164,12 +168,13 @@ export function IoTProvider({
                     device.id === id ? updated : device
                 )
             );
-        } catch (err) {
+        } catch {
             setDevices(previousDevices);
             setError(
-                err instanceof Error
-                    ? err.message
-                    : 'Failed to update device'
+                `Unable to update ${
+                    devices.find((d) => d.id === id)
+                        ?.name ?? 'device'
+                }.`
             );
         } finally {
             setUpdatingDeviceId(null);
@@ -184,6 +189,7 @@ export function IoTProvider({
                 sensors,
                 refreshSensors,
                 isRefreshingSensors,
+                sensorError,
                 toggleDevice,
                 updatingDeviceId,
                 gatewayConnected,
@@ -191,6 +197,7 @@ export function IoTProvider({
                 disconnectGateway,
                 isLoading,
                 error,
+                retryDevices: loadDevices,
             }}
         >
             {children}

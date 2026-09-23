@@ -18,6 +18,8 @@ export default function SensorsScreen() {
     sensors,
     refreshSensors,
     isRefreshingSensors,
+    sensorError,
+    gatewayConnected,
   } = useIoT();
 
   return (
@@ -31,6 +33,12 @@ export default function SensorsScreen() {
       <Text style={styles.subtitle}>
         Monitor your environment
       </Text>
+
+      {!gatewayConnected && (
+        <Text style={styles.gatewayBanner}>
+          IoT Gateway is disconnected.
+        </Text>
+      )}
 
       {/* Temperature */}
       <View style={styles.sensorCard}>
@@ -137,9 +145,32 @@ export default function SensorsScreen() {
 
       {isRefreshingSensors && (
         <Text style={styles.refreshingText}>
-          Refreshing sensor data...
+          Refreshing Sensors...
         </Text>
       )}
+
+      {!isRefreshingSensors &&
+        gatewayConnected &&
+        sensorError && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>
+              {sensorError}
+            </Text>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.retryButton,
+                pressed && styles.retryButtonPressed,
+              ]}
+              onPress={refreshSensors}
+              android_ripple={{ color: '#ffffff55' }}
+            >
+              <Text style={styles.retryButtonText}>
+                Retry
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
     </ScrollView>
   );
@@ -215,6 +246,47 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 10,
     textAlign: 'center',
+  },
+
+  gatewayBanner: {
+    fontSize: 14,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#fff3cd',
+    color: '#8a6d00',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+
+  errorContainer: {
+    marginTop: 15,
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  errorText: {
+    fontSize: 14,
+    textAlign: 'center',
+    color: '#d32f2f',
+  },
+
+  retryButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    backgroundColor: '#d32f2f',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+
+  retryButtonPressed: {
+    opacity: 0.8,
+  },
+
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 
 });
