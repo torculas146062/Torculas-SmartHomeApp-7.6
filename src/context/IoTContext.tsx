@@ -3,39 +3,14 @@ import React, {
     useContext,
     useState,
 } from 'react';
-
-type SensorData = {
-    temperature: number;
-    humidity: number;
-    lightLevel: number;
-};
-
-const devices = [
-    {
-        id: 1,
-        name: 'Living Room Light',
-        type: 'Smart Light',
-        icon: 'bulb-outline' as const,
-        status: true,
-    },
-    {
-        id: 2,
-        name: 'Bedroom Fan',
-        type: 'Smart Fan',
-        icon: 'sync-outline' as const,
-        status: false,
-    },
-    {
-        id: 3,
-        name: 'Front Door Lock',
-        type: 'Smart Lock',
-        icon: 'lock-closed-outline' as const,
-        status: true,
-    },
-];
+import {
+    Device,
+    SensorData,
+    sampleDevices,
+} from '../models/IoTModels';
 
 type IoTContextType = {
-    devices: typeof devices;
+    devices: Device[];
     sensors: SensorData;
     toggleDevice: (id: number, value: boolean) => void;
 };
@@ -51,7 +26,7 @@ export function IoTProvider({
 }) {
 
     const [deviceStatus, setDeviceStatus] = useState(
-        devices.reduce((acc, device) => {
+        sampleDevices.reduce((acc, device) => {
             acc[device.id] = device.status;
 
             return acc;
@@ -70,7 +45,7 @@ export function IoTProvider({
 
     };
 
-    const updatedDevices = devices.map((device) => ({
+    const updatedDevices = sampleDevices.map((device) => ({
         ...device,
         status: deviceStatus[device.id],
     }));
