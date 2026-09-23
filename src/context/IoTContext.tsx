@@ -13,6 +13,11 @@ type IoTContextType = {
     devices: Device[];
     sensors: SensorData;
     toggleDevice: (id: number, value: boolean) => void;
+    gatewayConnected: boolean;
+    connectGateway: () => void;
+    disconnectGateway: () => void;
+    isLoading: boolean;
+    error: string | null;
 };
 
 const IoTContext = createContext<IoTContextType | undefined>(
@@ -33,10 +38,42 @@ export function IoTProvider({
         }, {} as Record<number, boolean>)
     );
 
+    const [gatewayConnected, setGatewayConnected] =
+        useState(true);
+
+    const [isLoading, setIsLoading] = useState(false);
+
+    const [error, setError] = useState<string | null>(
+        null
+    );
+
+    const connectGateway = () => {
+
+        setIsLoading(true);
+        setError(null);
+
+        setTimeout(() => {
+            setGatewayConnected(true);
+            setIsLoading(false);
+        }, 800);
+
+    };
+
+    const disconnectGateway = () => {
+        setGatewayConnected(false);
+    };
+
     const toggleDevice = (
         id: number,
         value: boolean
     ) => {
+
+        if (!gatewayConnected) {
+            setError('Gateway is not connected');
+            return;
+        }
+
+        setError(null);
 
         setDeviceStatus({
             ...deviceStatus,
@@ -62,6 +99,11 @@ export function IoTProvider({
                 devices: updatedDevices,
                 sensors,
                 toggleDevice,
+                gatewayConnected,
+                connectGateway,
+                disconnectGateway,
+                isLoading,
+                error,
             }}
         >
             {children}
