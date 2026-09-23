@@ -12,6 +12,8 @@ import {
 type IoTContextType = {
     devices: Device[];
     sensors: SensorData;
+    refreshSensors: () => void;
+    isRefreshingSensors: boolean;
     toggleDevice: (id: number, value: boolean) => void;
     updatingDeviceId: number | null;
     gatewayConnected: boolean;
@@ -52,6 +54,44 @@ export function IoTProvider({
         updatingDeviceId,
         setUpdatingDeviceId,
     ] = useState<number | null>(null);
+
+    const [sensors, setSensors] = useState<SensorData>({
+        temperature: 28,
+        humidity: 65,
+        lightLevel: 720,
+    });
+
+    const [
+        isRefreshingSensors,
+        setIsRefreshingSensors,
+    ] = useState(false);
+
+    const refreshSensors = () => {
+
+        if (!gatewayConnected) {
+            setError('Gateway is not connected');
+            return;
+        }
+
+        setError(null);
+        setIsRefreshingSensors(true);
+
+        setTimeout(() => {
+            setSensors({
+                temperature: Math.round(
+                    20 + Math.random() * 15
+                ),
+                humidity: Math.round(
+                    30 + Math.random() * 60
+                ),
+                lightLevel: Math.round(
+                    100 + Math.random() * 900
+                ),
+            });
+            setIsRefreshingSensors(false);
+        }, 1000);
+
+    };
 
     const connectGateway = () => {
 
@@ -98,17 +138,13 @@ export function IoTProvider({
         status: deviceStatus[device.id],
     }));
 
-    const sensors: SensorData = {
-        temperature: 100,
-        humidity: 99,
-        lightLevel: 1000,
-    };
-
     return (
         <IoTContext.Provider
             value={{
                 devices: updatedDevices,
                 sensors,
+                refreshSensors,
+                isRefreshingSensors,
                 toggleDevice,
                 updatingDeviceId,
                 gatewayConnected,

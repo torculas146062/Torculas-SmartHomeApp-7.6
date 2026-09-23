@@ -4,11 +4,22 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  Pressable,
+  ActivityIndicator,
 } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useIoT } from '../../context/IoTContext';
+
 export default function SensorsScreen() {
+
+  const {
+    sensors,
+    refreshSensors,
+    isRefreshingSensors,
+  } = useIoT();
+
   return (
     <ScrollView style={styles.container}>
 
@@ -38,7 +49,9 @@ export default function SensorsScreen() {
         </View>
 
         <Text style={styles.sensorValue}>
-          28°C
+          {isRefreshingSensors
+            ? '—'
+            : `${sensors.temperature}°C`}
         </Text>
 
         <Text style={styles.sensorDescription}>
@@ -64,7 +77,9 @@ export default function SensorsScreen() {
         </View>
 
         <Text style={styles.sensorValue}>
-          65%
+          {isRefreshingSensors
+            ? '—'
+            : `${sensors.humidity}%`}
         </Text>
 
         <Text style={styles.sensorDescription}>
@@ -90,7 +105,9 @@ export default function SensorsScreen() {
         </View>
 
         <Text style={styles.sensorValue}>
-          720 lux
+          {isRefreshingSensors
+            ? '—'
+            : `${sensors.lightLevel} lux`}
         </Text>
 
         <Text style={styles.sensorDescription}>
@@ -98,6 +115,31 @@ export default function SensorsScreen() {
         </Text>
 
       </View>
+
+      {/* Refresh */}
+      <Pressable
+        style={({ pressed }) => [
+          styles.refreshButton,
+          pressed && styles.refreshButtonPressed,
+        ]}
+        onPress={refreshSensors}
+        disabled={isRefreshingSensors}
+        android_ripple={{ color: '#ffffff55' }}
+      >
+        {isRefreshingSensors ? (
+          <ActivityIndicator color="#ffffff" />
+        ) : (
+          <Text style={styles.refreshButtonText}>
+            Refresh Sensors
+          </Text>
+        )}
+      </Pressable>
+
+      {isRefreshingSensors && (
+        <Text style={styles.refreshingText}>
+          Refreshing sensor data...
+        </Text>
+      )}
 
     </ScrollView>
   );
@@ -148,6 +190,31 @@ const styles = StyleSheet.create({
   sensorDescription: {
     fontSize: 13,
     marginTop: 5,
+  },
+
+  refreshButton: {
+    marginTop: 5,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: '#0a84ff',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+
+  refreshButtonPressed: {
+    opacity: 0.8,
+  },
+
+  refreshButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
+  refreshingText: {
+    fontSize: 13,
+    marginTop: 10,
+    textAlign: 'center',
   },
 
 });
