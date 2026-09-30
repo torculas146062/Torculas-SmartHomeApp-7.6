@@ -12,11 +12,20 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import { useIoT } from '../../context/IoTContext';
+import { createThemedStyles, useTheme } from '../../context/ThemeContext';
 
 export default function SettingsScreen() {
 
   const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+
+  const {
+    colors,
+    isDark,
+    preference,
+    setDarkMode,
+  } = useTheme();
+
+  const styles = useStyles();
 
   const {
     gatewayConnected,
@@ -62,6 +71,7 @@ export default function SettingsScreen() {
           <Ionicons
             name="notifications-outline"
             size={26}
+            color={colors.text}
           />
 
           <View style={styles.settingText}>
@@ -95,6 +105,7 @@ export default function SettingsScreen() {
           <Ionicons
             name="wifi-outline"
             size={26}
+            color={colors.text}
           />
 
           <View style={styles.settingText}>
@@ -135,6 +146,7 @@ export default function SettingsScreen() {
           <Ionicons
             name="moon-outline"
             size={26}
+            color={colors.text}
           />
 
           <View style={styles.settingText}>
@@ -144,7 +156,9 @@ export default function SettingsScreen() {
             </Text>
 
             <Text style={styles.settingDescription}>
-              Use a darker application appearance
+              {preference === 'system'
+                ? 'Following the system appearance'
+                : 'Use a darker application appearance'}
             </Text>
 
           </View>
@@ -152,7 +166,7 @@ export default function SettingsScreen() {
         </View>
 
         <Switch
-          value={darkMode}
+          value={isDark}
           onValueChange={setDarkMode}
         />
 
@@ -171,7 +185,10 @@ export default function SettingsScreen() {
         <View style={styles.connectionInfo}>
 
           {isConnectingGateway ? (
-            <ActivityIndicator size="small" />
+            <ActivityIndicator
+              size="small"
+              color={colors.textMuted}
+            />
           ) : (
             <Ionicons
               name={
@@ -180,6 +197,7 @@ export default function SettingsScreen() {
                   : 'cloud-offline-outline'
               }
               size={30}
+              color={colors.text}
             />
           )}
 
@@ -212,7 +230,7 @@ export default function SettingsScreen() {
             onPress={() => {
               connectGateway();
             }}
-            android_ripple={{ color: '#ffffff55' }}
+            android_ripple={{ color: colors.ripple }}
           >
             <Text style={styles.connectButtonText}>
               Reconnect
@@ -226,22 +244,29 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+/**
+ * Styles are rebuilt only when the theme changes (see `createThemedStyles`),
+ * so every colour comes from the active palette.
+ */
+const useStyles = createThemedStyles((c) => StyleSheet.create({
 
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: c.background,
   },
 
   title: {
     fontSize: 28,
     fontWeight: 'bold',
+    color: c.text,
   },
 
   subtitle: {
     fontSize: 14,
     marginTop: 5,
     marginBottom: 25,
+    color: c.textMuted,
   },
 
   sectionTitle: {
@@ -249,6 +274,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 12,
     marginTop: 10,
+    color: c.text,
   },
 
   settingCard: {
@@ -257,7 +283,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 18,
     borderRadius: 15,
-    backgroundColor: '#eeeeee',
+    backgroundColor: c.surface,
     marginBottom: 12,
   },
 
@@ -275,17 +301,19 @@ const styles = StyleSheet.create({
   settingName: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: c.text,
   },
 
   settingDescription: {
     fontSize: 12,
     marginTop: 4,
+    color: c.textMuted,
   },
 
   connectionCard: {
     padding: 18,
     borderRadius: 15,
-    backgroundColor: '#eeeeee',
+    backgroundColor: c.surface,
   },
 
   connectionInfo: {
@@ -297,25 +325,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 15,
+    color: c.text,
   },
 
   connectionStatus: {
     fontSize: 13,
     marginLeft: 15,
     marginTop: 3,
+    color: c.textMuted,
   },
 
   connectionError: {
     fontSize: 13,
     marginTop: 12,
-    color: '#d32f2f',
+    color: c.danger,
   },
 
   connectButton: {
     marginTop: 15,
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: '#0a84ff',
+    backgroundColor: c.primary,
     alignItems: 'center',
     overflow: 'hidden',
   },
@@ -325,9 +355,9 @@ const styles = StyleSheet.create({
   },
 
   connectButtonText: {
-    color: '#ffffff',
+    color: c.onAccent,
     fontSize: 15,
     fontWeight: 'bold',
   },
 
-});
+}));

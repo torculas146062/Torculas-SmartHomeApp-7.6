@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import { useIoT } from '../../context/IoTContext';
+import { createThemedStyles, useTheme } from '../../context/ThemeContext';
 
 export default function SensorsScreen() {
 
@@ -20,7 +21,11 @@ export default function SensorsScreen() {
     isRefreshingSensors,
     sensorError,
     gatewayConnected,
+    isConnectingGateway,
   } = useIoT();
+
+  const { colors } = useTheme();
+  const styles = useStyles();
 
   return (
     <ScrollView style={styles.container}>
@@ -34,7 +39,7 @@ export default function SensorsScreen() {
         Monitor your environment
       </Text>
 
-      {!gatewayConnected && (
+      {!gatewayConnected && !isConnectingGateway && (
         <Text style={styles.gatewayBanner}>
           IoT Gateway is disconnected.
         </Text>
@@ -48,6 +53,7 @@ export default function SensorsScreen() {
           <Ionicons
             name="thermometer-outline"
             size={30}
+            color={colors.text}
           />
 
           <Text style={styles.sensorName}>
@@ -76,6 +82,7 @@ export default function SensorsScreen() {
           <Ionicons
             name="water-outline"
             size={30}
+            color={colors.text}
           />
 
           <Text style={styles.sensorName}>
@@ -104,6 +111,7 @@ export default function SensorsScreen() {
           <Ionicons
             name="sunny-outline"
             size={30}
+            color={colors.text}
           />
 
           <Text style={styles.sensorName}>
@@ -132,10 +140,10 @@ export default function SensorsScreen() {
         ]}
         onPress={refreshSensors}
         disabled={isRefreshingSensors}
-        android_ripple={{ color: '#ffffff55' }}
+        android_ripple={{ color: colors.ripple }}
       >
         {isRefreshingSensors ? (
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={colors.onAccent} />
         ) : (
           <Text style={styles.refreshButtonText}>
             Refresh Sensors
@@ -163,7 +171,7 @@ export default function SensorsScreen() {
                 pressed && styles.retryButtonPressed,
               ]}
               onPress={refreshSensors}
-              android_ripple={{ color: '#ffffff55' }}
+              android_ripple={{ color: colors.ripple }}
             >
               <Text style={styles.retryButtonText}>
                 Retry
@@ -176,28 +184,35 @@ export default function SensorsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+/**
+ * Styles are rebuilt only when the theme changes (see `createThemedStyles`),
+ * so every colour comes from the active palette.
+ */
+const useStyles = createThemedStyles((c) => StyleSheet.create({
 
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: c.background,
   },
 
   title: {
     fontSize: 28,
     fontWeight: 'bold',
+    color: c.text,
   },
 
   subtitle: {
     fontSize: 14,
     marginTop: 5,
     marginBottom: 25,
+    color: c.textMuted,
   },
 
   sensorCard: {
     padding: 20,
     borderRadius: 15,
-    backgroundColor: '#eeeeee',
+    backgroundColor: c.surface,
     marginBottom: 15,
   },
 
@@ -210,24 +225,27 @@ const styles = StyleSheet.create({
   sensorName: {
     fontSize: 17,
     fontWeight: 'bold',
+    color: c.text,
   },
 
   sensorValue: {
     fontSize: 32,
     fontWeight: 'bold',
     marginTop: 20,
+    color: c.text,
   },
 
   sensorDescription: {
     fontSize: 13,
     marginTop: 5,
+    color: c.textMuted,
   },
 
   refreshButton: {
     marginTop: 5,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: '#0a84ff',
+    backgroundColor: c.primary,
     alignItems: 'center',
     overflow: 'hidden',
   },
@@ -237,7 +255,7 @@ const styles = StyleSheet.create({
   },
 
   refreshButtonText: {
-    color: '#ffffff',
+    color: c.onAccent,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -246,14 +264,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 10,
     textAlign: 'center',
+    color: c.textMuted,
   },
 
   gatewayBanner: {
     fontSize: 14,
     padding: 12,
     borderRadius: 10,
-    backgroundColor: '#fff3cd',
-    color: '#8a6d00',
+    backgroundColor: c.warningSurface,
+    color: c.warning,
     marginBottom: 15,
     textAlign: 'center',
   },
@@ -267,14 +286,14 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 14,
     textAlign: 'center',
-    color: '#d32f2f',
+    color: c.danger,
   },
 
   retryButton: {
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 10,
-    backgroundColor: '#d32f2f',
+    backgroundColor: c.danger,
     alignItems: 'center',
     overflow: 'hidden',
   },
@@ -284,9 +303,9 @@ const styles = StyleSheet.create({
   },
 
   retryButtonText: {
-    color: '#ffffff',
+    color: c.onAccent,
     fontSize: 15,
     fontWeight: 'bold',
   },
 
-});
+}));

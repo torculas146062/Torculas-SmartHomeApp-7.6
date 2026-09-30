@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import { useIoT } from '../../context/IoTContext';
+import { createThemedStyles, useTheme } from '../../context/ThemeContext';
 
 export default function DevicesScreen() {
 
@@ -27,6 +28,9 @@ export default function DevicesScreen() {
     retryDevices,
   } = useIoT();
 
+  const { colors } = useTheme();
+  const styles = useStyles();
+
   return (
     <ScrollView style={styles.container}>
 
@@ -38,7 +42,7 @@ export default function DevicesScreen() {
         Control your connected devices
       </Text>
 
-      {!gatewayConnected && (
+      {!gatewayConnected && !isConnectingGateway && (
         <Text style={styles.gatewayBanner}>
           IoT Gateway is disconnected.
         </Text>
@@ -46,7 +50,10 @@ export default function DevicesScreen() {
 
       {(isLoading || isConnectingGateway) && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" />
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+          />
 
           <Text style={styles.loadingText}>
             Loading devices...
@@ -69,7 +76,7 @@ export default function DevicesScreen() {
                 pressed && styles.retryButtonPressed,
               ]}
               onPress={retryDevices}
-              android_ripple={{ color: '#ffffff55' }}
+              android_ripple={{ color: colors.ripple }}
             >
               <Text style={styles.retryButtonText}>
                 Retry
@@ -101,6 +108,7 @@ export default function DevicesScreen() {
               <Ionicons
                 name={device.icon}
                 size={28}
+                color={colors.text}
               />
 
             </View>
@@ -143,22 +151,29 @@ export default function DevicesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+/**
+ * Styles are rebuilt only when the theme changes (see `createThemedStyles`),
+ * so every colour comes from the active palette.
+ */
+const useStyles = createThemedStyles((c) => StyleSheet.create({
 
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: c.background,
   },
 
   title: {
     fontSize: 28,
     fontWeight: 'bold',
+    color: c.text,
   },
 
   subtitle: {
     fontSize: 14,
     marginTop: 5,
     marginBottom: 25,
+    color: c.textMuted,
   },
 
   loader: {
@@ -173,15 +188,15 @@ const styles = StyleSheet.create({
 
   loadingText: {
     fontSize: 14,
-    color: '#555555',
+    color: c.textMuted,
   },
 
   gatewayBanner: {
     fontSize: 14,
     padding: 12,
     borderRadius: 10,
-    backgroundColor: '#fff3cd',
-    color: '#8a6d00',
+    backgroundColor: c.warningSurface,
+    color: c.warning,
     marginBottom: 15,
     textAlign: 'center',
   },
@@ -197,8 +212,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 12,
     borderRadius: 10,
-    backgroundColor: '#fdecea',
-    color: '#d32f2f',
+    backgroundColor: c.dangerSurface,
+    color: c.danger,
     textAlign: 'center',
   },
 
@@ -206,7 +221,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 10,
-    backgroundColor: '#d32f2f',
+    backgroundColor: c.danger,
     alignItems: 'center',
     overflow: 'hidden',
   },
@@ -216,7 +231,7 @@ const styles = StyleSheet.create({
   },
 
   retryButtonText: {
-    color: '#ffffff',
+    color: c.onAccent,
     fontSize: 15,
     fontWeight: 'bold',
   },
@@ -225,7 +240,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 20,
     textAlign: 'center',
-    color: '#d32f2f',
+    color: c.danger,
   },
 
   deviceCard: {
@@ -234,7 +249,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 18,
     borderRadius: 15,
-    backgroundColor: '#eeeeee',
+    backgroundColor: c.surface,
     marginBottom: 15,
   },
 
@@ -251,6 +266,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
+    backgroundColor: c.surfaceMuted,
   },
 
   deviceDetails: {
@@ -260,16 +276,19 @@ const styles = StyleSheet.create({
   deviceName: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: c.text,
   },
 
   deviceType: {
     fontSize: 13,
     marginTop: 3,
+    color: c.textMuted,
   },
 
   deviceState: {
     fontSize: 12,
     marginTop: 5,
+    color: c.textMuted,
   },
 
-});
+}));

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Switch, ActivityIndicator, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useIoT } from '../../context/IoTContext';
+import { createThemedStyles, useTheme } from '../../context/ThemeContext';
 
 
 
@@ -23,6 +24,9 @@ export default function DashboardScreen() {
         error,
         retryDevices } = useIoT();
 
+    const { colors } = useTheme();
+    const styles = useStyles();
+
     return (
         <View style={styles.container}>
 
@@ -34,7 +38,7 @@ export default function DashboardScreen() {
                 IoT Dashboard
             </Text>
 
-            {!gatewayConnected && (
+            {!gatewayConnected && !isConnectingGateway && (
                 <Text style={styles.gatewayBanner}>
                     IoT Gateway is disconnected.
                 </Text>
@@ -45,8 +49,9 @@ export default function DashboardScreen() {
                 <View style={styles.sensorCard}>
                     <View style={styles.sensorHeader}>
                         <Ionicons
-                            name="water-outline"
+                            name="thermometer-outline"
                             size={22}
+                            color={colors.text}
                         />
 
                         <Text style={styles.sensorLabel}>
@@ -64,6 +69,7 @@ export default function DashboardScreen() {
                         <Ionicons
                             name="water-outline"
                             size={22}
+                            color={colors.text}
                         />
 
                         <Text style={styles.sensorLabel}>
@@ -84,7 +90,10 @@ export default function DashboardScreen() {
 
             {(isLoading || isConnectingGateway) && (
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" />
+                    <ActivityIndicator
+                        size="large"
+                        color={colors.primary}
+                    />
 
                     <Text style={styles.loadingText}>
                         Loading devices...
@@ -109,7 +118,7 @@ export default function DashboardScreen() {
                             ]}
                             onPress={retryDevices}
                             android_ripple={{
-                                color: '#ffffff55',
+                                color: colors.ripple,
                             }}
                         >
                             <Text
@@ -172,6 +181,7 @@ export default function DashboardScreen() {
                             name={device.icon}
                             size={28}
                             style={styles.deviceIcon}
+                            color={colors.text}
                         />
 
                         <View>
@@ -209,21 +219,28 @@ export default function DashboardScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+/**
+ * Styles are rebuilt only when the theme changes (see `createThemedStyles`),
+ * so every colour comes from the active palette.
+ */
+const useStyles = createThemedStyles((c) => StyleSheet.create({
 
     container: {
         flex: 1,
         padding: 20,
+        backgroundColor: c.background,
     },
 
     greeting: {
         fontSize: 14,
+        color: c.textMuted,
     },
 
     title: {
         fontSize: 28,
         fontWeight: 'bold',
         marginTop: 5,
+        color: c.text,
     },
 
     sensorRow: {
@@ -236,17 +253,19 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
         borderRadius: 12,
-        backgroundColor: '#eeeeee',
+        backgroundColor: c.surface,
     },
 
     sensorLabel: {
         fontSize: 14,
+        color: c.textMuted,
     },
 
     sensorValue: {
         fontSize: 28,
         fontWeight: 'bold',
         marginTop: 10,
+        color: c.text,
     },
 
     sectionTitle: {
@@ -254,6 +273,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginTop: 30,
         marginBottom: 12,
+        color: c.text,
     },
 
     deviceCard: {
@@ -262,7 +282,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 18,
         borderRadius: 12,
-        backgroundColor: '#eeeeee',
+        backgroundColor: c.surface,
         marginBottom: 12,
     },
 
@@ -279,16 +299,19 @@ const styles = StyleSheet.create({
     deviceName: {
         fontSize: 16,
         fontWeight: 'bold',
+        color: c.text,
     },
 
     deviceType: {
         fontSize: 13,
         marginTop: 3,
+        color: c.textMuted,
     },
 
     deviceStatus: {
         fontSize: 14,
         fontWeight: 'bold',
+        color: c.text,
     },
 
     sensorHeader: {
@@ -301,21 +324,22 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 3,
         fontWeight: 'bold',
+        color: c.textMuted,
     },
 
     errorText: {
         fontSize: 14,
         marginTop: 10,
         textAlign: 'center',
-        color: '#d32f2f',
+        color: c.danger,
     },
 
     gatewayBanner: {
         fontSize: 14,
         padding: 12,
         borderRadius: 10,
-        backgroundColor: '#fff3cd',
-        color: '#8a6d00',
+        backgroundColor: c.warningSurface,
+        color: c.warning,
         marginTop: 15,
         textAlign: 'center',
     },
@@ -328,7 +352,7 @@ const styles = StyleSheet.create({
 
     loadingText: {
         fontSize: 14,
-        color: '#555555',
+        color: c.textMuted,
     },
 
     errorContainer: {
@@ -342,8 +366,8 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         padding: 12,
         borderRadius: 10,
-        backgroundColor: '#fdecea',
-        color: '#d32f2f',
+        backgroundColor: c.dangerSurface,
+        color: c.danger,
         textAlign: 'center',
     },
 
@@ -351,7 +375,7 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 30,
         borderRadius: 10,
-        backgroundColor: '#d32f2f',
+        backgroundColor: c.danger,
         alignItems: 'center',
         overflow: 'hidden',
     },
@@ -361,9 +385,9 @@ const styles = StyleSheet.create({
     },
 
     retryButtonText: {
-        color: '#ffffff',
+        color: c.onAccent,
         fontSize: 15,
         fontWeight: 'bold',
     },
 
-});
+}));

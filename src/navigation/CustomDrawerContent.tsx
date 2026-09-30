@@ -12,10 +12,17 @@ import {
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTheme, createThemedStyles } from '../context/ThemeContext';
+
 export default function CustomDrawerContent(props: any) {
+
+    const { colors } = useTheme();
+    const styles = useStyles();
+
     return (
         <DrawerContentScrollView
             {...props}
+            style={{ backgroundColor: colors.surface }}
             contentContainerStyle={styles.container}
         >
 
@@ -26,6 +33,7 @@ export default function CustomDrawerContent(props: any) {
                     <Ionicons
                         name="hardware-chip-outline"
                         size={40}
+                        color={colors.text}
                     />
                 </View>
 
@@ -48,7 +56,7 @@ export default function CustomDrawerContent(props: any) {
     );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((c) => StyleSheet.create({
 
     container: {
         flex: 1,
@@ -66,15 +74,17 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 22,
         fontWeight: 'bold',
+        color: c.text,
     },
 
     subtitle: {
         fontSize: 13,
         marginTop: 4,
+        color: c.textMuted,
     },
 
     menu: {
         marginTop: 10,
     },
 
-});
+}));
