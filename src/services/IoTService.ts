@@ -1,70 +1,96 @@
+import { endpoints, environment } from '../config/environment';
 import {
     Device,
+    DeviceId,
     SensorData,
-    sampleDevices,
 } from '../models/IoTModels';
+import { ApiError } from './api/ApiError';
+import { DeviceDto, HealthDto, SensorDataDto } from './api/dto';
+import { httpClient } from './api/httpClient';
+import { toDevice, toSensorData, unwrapList } from './api/mappers';
+import * as mock from './mock/IoTMockService';
 
 /**
- * Simulates network communication with an IoT backend.
+ * IoT data access layer.
  *
- * Mobile App ──► IoTService ──► Simulated IoT API
+ * ```
+ * Screens ──► IoTContext ──► IoTService ──► httpClient ──► IoT backend
+ *                                    └────► IoTMockService (EXPO_PUBLIC_USE_MOCK_API)
+ * ```
+ *
+ * Every function returns app models, never DTOs, and throws `ApiError` on
+ * failure. Swapping between the simulation and the real backend only requires
+ * changing `.env` — no code changes.
  */
 
-const FAILURE_RATE = 0.15;
-
-function delay(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-}
-
-function simulateFailure(message: string) {
-    if (Math.random() < FAILURE_RATE) {
-        throw new Error(message);
-    }
-}
-
 export async function getSensorData(): Promise<SensorData> {
+    if (environment.useMockApi) {
+        return mock.getSensorData();
+    }
 
-    await delay(1500);
+    const dto = await httpClient.get<SensorDataDto>(
+        endpoints.latestSensors
+    );
 
-    simulateFailure('Failed to fetch sensor data');
-
-    return {
-        temperature: Math.round(20 + Math.random() * 15),
-        humidity: Math.round(30 + Math.random() * 60),
-        lightLevel: Math.round(100 + Math.random() * 900),
-    };
-
+    return toSensorData(dto);
 }
 
 export async function getDevices(): Promise<Device[]> {
+    if (environment.useMockApi) {
+        return mock.getDevices();
+    }
 
-    await delay(1000);
+    const payload = await httpClient.get<DeviceDto[]>(
+        endpoints.devices
+    );
 
-    simulateFailure('Failed to fetch devices');
-
-    return sampleDevices.map((device) => ({ ...device }));
-
+    return unwrapList<DeviceDto>(payload).map(toDevice);
 }
 
 export async function updateDeviceStatus(
-    id: number,
+    id: DeviceId,
     status: boolean
 ): Promise<Device> {
-
-    await delay(800);
-
-    simulateFailure('Failed to update device status');
-
-    const device = sampleDevices.find(
-        (d) => d.id === id
-    );
-
-    if (!device) {
-        throw new Error(`Device ${id} not found`);
+    if (environment.useMockApi) {
+        return mock.updateDeviceStatus(id, status);
     }
 
-    return { ...device, status };
+    const dto = await httpClient.patch<DeviceDto>(
+        endpoints.device(id),
+        { status }
+    );
 
+    return toDevice(dto);
 }
+
+/**
+ * Probes the gateway and reports whether it is reachable, without surfacing a
+ * transport failure to the caller (a down gateway is an expected state).
+ */
+export async function checkGatewayConnection(): Promise<boolean> {
+    if (environment.useMockApi) {
+        return mock.checkGatewayConnection();
+    }
+
+    try {
+        const health = await httpClient.get<HealthDto>(
+            endpoints.health,
+            { timeoutMs: environment.healthCheckTimeoutMs }
+        );
+
+        return health?.connected ?? true;
+    } catch (cause) {
+        if (cause instanceof ApiError) {
+            return false;
+        }
+
+        throw cause;
+    }
+}
+
+/**
+ * Re-exported from the HTTP client so the future auth flow can attach the
+ * backend bearer token without reaching into `src/services/api` directly.
+ */
+export { setAuthToken } from './api/httpClient';
+export { ApiError } from './api/ApiError';

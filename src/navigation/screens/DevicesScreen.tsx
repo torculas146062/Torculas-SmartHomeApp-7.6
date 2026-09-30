@@ -21,6 +21,7 @@ export default function DevicesScreen() {
     toggleDevice,
     updatingDeviceId,
     gatewayConnected,
+    isConnectingGateway,
     isLoading,
     error,
     retryDevices,
@@ -43,7 +44,7 @@ export default function DevicesScreen() {
         </Text>
       )}
 
-      {isLoading && (
+      {(isLoading || isConnectingGateway) && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" />
 
@@ -53,7 +54,9 @@ export default function DevicesScreen() {
         </View>
       )}
 
-      {!isLoading && devices.length === 0 && (
+      {!isLoading &&
+        !isConnectingGateway &&
+        devices.length === 0 && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             {error ?? 'No devices found'}

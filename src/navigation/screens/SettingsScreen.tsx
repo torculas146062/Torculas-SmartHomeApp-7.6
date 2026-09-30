@@ -5,15 +5,32 @@ import {
   StyleSheet,
   ScrollView,
   Switch,
+  Pressable,
+  ActivityIndicator,
 } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useIoT } from '../../context/IoTContext';
+
 export default function SettingsScreen() {
 
   const [notifications, setNotifications] = useState(true);
-  const [autoConnect, setAutoConnect] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+
+  const {
+    gatewayConnected,
+    isConnectingGateway,
+    connectGateway,
+    disconnectGateway,
+    error,
+  } = useIoT();
+
+  const gatewayStatus = isConnectingGateway
+    ? 'Connecting...'
+    : gatewayConnected
+      ? 'Connected'
+      : 'Disconnected';
 
   return (
     <ScrollView style={styles.container}>
@@ -95,8 +112,15 @@ export default function SettingsScreen() {
         </View>
 
         <Switch
-          value={autoConnect}
-          onValueChange={setAutoConnect}
+          value={gatewayConnected}
+          disabled={isConnectingGateway}
+          onValueChange={(value) => {
+            if (value) {
+              connectGateway();
+            } else {
+              disconnectGateway();
+            }
+          }}
         />
 
       </View>
@@ -146,10 +170,18 @@ export default function SettingsScreen() {
 
         <View style={styles.connectionInfo}>
 
-          <Ionicons
-            name="cloud-done-outline"
-            size={30}
-          />
+          {isConnectingGateway ? (
+            <ActivityIndicator size="small" />
+          ) : (
+            <Ionicons
+              name={
+                gatewayConnected
+                  ? 'cloud-done-outline'
+                  : 'cloud-offline-outline'
+              }
+              size={30}
+            />
+          )}
 
           <View>
 
@@ -158,12 +190,35 @@ export default function SettingsScreen() {
             </Text>
 
             <Text style={styles.connectionStatus}>
-              Connected
+              {gatewayStatus}
             </Text>
 
           </View>
 
         </View>
+
+        {!!error && (
+          <Text style={styles.connectionError}>
+            {error}
+          </Text>
+        )}
+
+        {!gatewayConnected && !isConnectingGateway && (
+          <Pressable
+            style={({ pressed }) => [
+              styles.connectButton,
+              pressed && styles.connectButtonPressed,
+            ]}
+            onPress={() => {
+              connectGateway();
+            }}
+            android_ripple={{ color: '#ffffff55' }}
+          >
+            <Text style={styles.connectButtonText}>
+              Reconnect
+            </Text>
+          </Pressable>
+        )}
 
       </View>
 
@@ -248,6 +303,31 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginLeft: 15,
     marginTop: 3,
+  },
+
+  connectionError: {
+    fontSize: 13,
+    marginTop: 12,
+    color: '#d32f2f',
+  },
+
+  connectButton: {
+    marginTop: 15,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#0a84ff',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+
+  connectButtonPressed: {
+    opacity: 0.8,
+  },
+
+  connectButtonText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 
 });

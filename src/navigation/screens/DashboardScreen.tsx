@@ -18,6 +18,7 @@ export default function DashboardScreen() {
         toggleDevice,
         updatingDeviceId,
         gatewayConnected,
+        isConnectingGateway,
         isLoading,
         error,
         retryDevices } = useIoT();
@@ -81,7 +82,7 @@ export default function DashboardScreen() {
                 Device Status
             </Text>
 
-            {isLoading && (
+            {(isLoading || isConnectingGateway) && (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" />
 
@@ -91,7 +92,9 @@ export default function DashboardScreen() {
                 </View>
             )}
 
-            {!isLoading && devices.length === 0 && (
+            {!isLoading &&
+                !isConnectingGateway &&
+                devices.length === 0 && (
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>
                         {error ?? 'No devices found'}
