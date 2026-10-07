@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, ActivityIndicator, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Switch, ActivityIndicator, Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useIoT } from '../../context/IoTContext';
 import { createThemedStyles, useTheme } from '../../context/ThemeContext';
@@ -28,7 +28,11 @@ export default function DashboardScreen() {
     const styles = useStyles();
 
     return (
-        <View style={styles.container}>
+        <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+        >
 
             <Text style={styles.greeting}>
                 Good evening
@@ -215,7 +219,7 @@ export default function DashboardScreen() {
                 </View>
 
             ))}
-        </View>
+        </ScrollView>
     );
 }
 
@@ -227,8 +231,12 @@ const useStyles = createThemedStyles((c) => StyleSheet.create({
 
     container: {
         flex: 1,
-        padding: 20,
         backgroundColor: c.background,
+    },
+
+    content: {
+        padding: 20,
+        paddingBottom: 40,
     },
 
     greeting: {
