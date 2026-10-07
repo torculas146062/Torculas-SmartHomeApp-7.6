@@ -8,6 +8,24 @@ Screens ──► IoTContext ──► IoTService ──► httpClient ──►
                                     └────► IoTMockService (mock mode)
 ```
 
+## Bundled backend (`backend/`)
+
+This repository ships a reference implementation of the contract below — an
+Express 5 + `mysql2` REST API written in TypeScript (ESM). See
+[`backend/README.md`](../backend/README.md) for the architecture and endpoint
+table. Routing files contain no SQL; queries live in the repository layer.
+
+```bash
+npm run backend:install                       # one-off: install backend deps
+mysql -u root -p < backend/sql/schema.sql     # create database + tables
+mysql -u root -p < backend/sql/seed.sql       # load sample devices/readings
+npm run backend                               # start the API on :3000
+```
+
+The API implements `GET /health`, `GET /api/devices`, `GET /api/devices/:id`,
+`PATCH /api/devices/:id` and `GET /api/sensors/latest` exactly as documented
+below, so pointing the app at it (next section) requires no app code changes.
+
 ## Switching the app over
 
 1. Copy `.env.example` to `.env`.
